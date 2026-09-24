@@ -6,6 +6,14 @@ A Model Context Protocol (MCP) server and app for creating Datawrapper charts us
 
 <!-- mcp-name: io.github.palewire/datawrapper-mcp -->
 
+> **Status: early and experimental.** This project — including its Claude
+> Code/Desktop plugin and marketplace listing — is under active development,
+> and behavior can change between releases. In particular, the
+> plugin/marketplace install path has known gaps (see
+> [issue #78](https://github.com/palewire/datawrapper-mcp/issues/78)) — don't
+> treat it yet as a finished, zero-maintenance install path for a wider
+> rollout.
+
 ## Example Usage
 
 You can provide a data file and simply ask for the chart you want. The draft will soon appear in the panel.
@@ -92,6 +100,14 @@ Use `list_chart_types` to see descriptions, then `get_chart_schema` to explore c
 
 For other clients (Claude Desktop, Claude.ai, Cursor, VS Code Copilot, ChatGPT, OpenAI Codex, OpenClaw) and Kubernetes deployment, see the [installation guide](INSTALLATION.md).
 
+> **Installing via a plugin marketplace/directory (Claude Desktop's plugin
+> browser, ClawHub, etc.) is still experimental.** These interactive install
+> flows currently have no working way to collect required environment
+> variables like `DATAWRAPPER_ACCESS_TOKEN` — see
+> [issue #78](https://github.com/palewire/datawrapper-mcp/issues/78) for
+> details. The manually-edited config shown above (and throughout the
+> [installation guide](INSTALLATION.md)) is the reliable path today.
+
 ### Using Your Own Token (Hosted Deployments)
 
 When connecting to a hosted instance of the server over HTTP, you can authenticate
@@ -109,15 +125,29 @@ You can also pass `access_token` directly as a tool argument, which takes preced
 over the header. When neither is provided, the server falls back to its
 `DATAWRAPPER_ACCESS_TOKEN` environment variable.
 
+### Custom Instructions
+
+Set `DATAWRAPPER_MCP_INSTRUCTIONS` to have the server hand your own free-text
+guidance to connecting MCP clients (many, including Claude, fold this into
+the model's context). Use it for house style rules — required fields, naming
+conventions, and the like — without forking the server:
+
+```json
+"env": {
+  "DATAWRAPPER_ACCESS_TOKEN": "your-token-here",
+  "DATAWRAPPER_MCP_INSTRUCTIONS": "Every chart needs alt text and a CMS slug in its notes field."
+}
+```
+
 ### Supported Clients
 
 | Client          | Config file                  | Transport                |
 | --------------- | ---------------------------- | ------------------------ |
 | Claude Desktop  | `claude_desktop_config.json` | stdio or streamable-http |
 | Claude.ai       | Personal or org connector    | streamable-http          |
-| Claude Code     | `.mcp.json`                  | stdio                    |
+| Claude Code     | [Plugin marketplace](https://github.com/palewire/datawrapper-mcp) or `.mcp.json` | stdio |
 | VS Code Copilot | `.vscode/mcp.json`           | stdio                    |
 | Cursor          | `.cursor/mcp.json`           | stdio or streamable-http |
 | ChatGPT         | Dev Mode settings            | streamable-http only     |
 | OpenAI Codex    | `~/.codex/config.toml`       | stdio                    |
-| OpenClaw        | `openclaw.json`              | stdio                    |
+| OpenClaw        | [ClawHub plugin](https://clawhub.ai/palewire/plugins/datawrapper-mcp) or `openclaw.json` | stdio |

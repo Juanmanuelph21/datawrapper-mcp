@@ -93,7 +93,25 @@ below, which solves this with an OAuth-based per-user token exchange.
 
 ## Claude Code
 
-**Using uvx (recommended)**
+**Using the plugin marketplace (recommended)**
+
+```bash
+claude plugin marketplace add palewire/datawrapper-mcp
+claude plugin install datawrapper-mcp@datawrapper-mcp
+```
+
+Set `DATAWRAPPER_ACCESS_TOKEN` in your environment before starting Claude
+Code. On macOS, a GUI-launched app (not started from a terminal) won't see
+a variable set in your shell profile — run `launchctl setenv
+DATAWRAPPER_ACCESS_TOKEN your-token-here` once, then fully quit and
+relaunch the app. See [`.claude-plugin/`](.claude-plugin/) in this
+repository for what gets installed.
+
+If you'd rather avoid environment variables entirely, skip the plugin and
+use the plain `.mcp.json` method in the "Using uvx" section below, which
+accepts a literal token value with no environment variable required.
+
+**Using uvx**
 
 Add this to `.mcp.json` in your project root:
 
@@ -291,6 +309,14 @@ If you're using the [Codex Desktop Application](https://openai.com/codex/), you 
 
 ## OpenClaw
 
+Make sure [uv](https://docs.astral.sh/uv/getting-started/installation/) is
+installed and `uvx` is on `PATH` before configuring either option below —
+if it's missing, the MCP server currently fails with a generic
+`Connection closed` error rather than a clear one
+([openclaw/openclaw#146268](https://github.com/openclaw/openclaw/issues/146268)).
+
+**Manual configuration (recommended for now)**
+
 Add this to `openclaw.json`:
 
 ```json
@@ -306,6 +332,29 @@ Add this to `openclaw.json`:
   }
 }
 ```
+
+**Using the ClawHub plugin**
+
+```bash
+openclaw plugins install clawhub:datawrapper-mcp
+```
+
+Set `DATAWRAPPER_ACCESS_TOKEN` in your environment before starting the
+gateway, then run `openclaw gateway restart`. See
+[`openclaw-plugin/`](openclaw-plugin/) in this repository for what gets
+installed.
+
+**Currently unreliable**: a plugin that only declares a static `mcpServers`
+entry (like this one) can get silently excluded from OpenClaw's gateway
+startup plan on restart, with no error on any diagnostic surface short of
+`openclaw doctor --fix`
+([openclaw/openclaw#117243](https://github.com/openclaw/openclaw/issues/117243)
+— not something we can fix from this repo). The manual configuration
+above bypasses the plugin loader entirely and isn't affected. See
+[issue #72](https://github.com/palewire/datawrapper-mcp/issues/72) for
+details. After installing either way, run `openclaw doctor --fix` to
+confirm the server actually started — "enabled" in the Control UI doesn't
+guarantee that.
 
 ## Linked-Account Mode (org-wide connectors)
 
