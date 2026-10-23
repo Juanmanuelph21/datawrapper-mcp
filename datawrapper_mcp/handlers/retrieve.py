@@ -2,8 +2,9 @@
 
 import asyncio
 import json
+from typing import Any
 
-from datawrapper import get_chart
+from datawrapper import BaseChart, get_chart
 from mcp.types import TextContent
 
 from datawrapper_mcp.config import API_TYPE_TO_SIMPLIFIED
@@ -29,7 +30,7 @@ async def get_chart_info(arguments: GetChartArgs) -> list[TextContent]:
     # Convert API type to simplified name for consistency with list_chart_types
     simplified_type = API_TYPE_TO_SIMPLIFIED.get(chart.chart_type, chart.chart_type)
 
-    result = {
+    result: dict[str, Any] = {
         "chart_id": chart.chart_id,
         "title": chart.title,
         "type": simplified_type,
@@ -37,5 +38,11 @@ async def get_chart_info(arguments: GetChartArgs) -> list[TextContent]:
         "public_url": chart.get_public_url(),
         "edit_url": chart.get_editor_url(),
     }
+
+    # A type without a typed class keeps its own settings in the raw API
+    # metadata, which model_dump() leaves out. Return it so they can be read,
+    # reused in create_chart or changed with update_chart.
+    if type(chart) is BaseChart:
+        result["metadata"] = chart.raw_metadata
 
     return [TextContent(type="text", text=json.dumps(result, indent=2))]

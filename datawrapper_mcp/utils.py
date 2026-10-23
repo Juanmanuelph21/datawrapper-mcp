@@ -105,3 +105,17 @@ def json_to_dataframe(data: str | list[Any] | dict[str, Any]) -> pd.DataFrame:
         '  2. Dict of arrays: {"year": [2020, 2021], "value": [100, 150]}\n'
         "  3. JSON string in either format above"
     )
+
+
+def deep_merge(base: dict[str, Any], overlay: dict[str, Any]) -> dict[str, Any]:
+    """Merge overlay into a copy of base, recursing into nested dicts.
+
+    Lists and every other value in overlay replace the one in base.
+    """
+    merged = dict(base)
+    for key, value in overlay.items():
+        if isinstance(value, dict) and isinstance(merged.get(key), dict):
+            merged[key] = deep_merge(merged[key], value)
+        else:
+            merged[key] = value
+    return merged

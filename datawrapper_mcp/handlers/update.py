@@ -3,11 +3,11 @@
 import asyncio
 from typing import Any
 
-from datawrapper import get_chart
+from datawrapper import BaseChart, get_chart
 from mcp.types import ImageContent
 
 from datawrapper_mcp.types import UpdateChartArgs
-from datawrapper_mcp.utils import json_to_dataframe
+from datawrapper_mcp.utils import deep_merge, json_to_dataframe
 
 from .preview import try_export_preview
 
@@ -38,6 +38,18 @@ async def update_chart(
         # Directly set attributes on the chart instance
         # Pydantic will validate each assignment automatically due to validate_assignment=True
         try:
+            config = dict(arguments["chart_config"])
+
+            # A type without a typed class keeps its own settings in raw
+            # metadata. Merge what was sent into it instead of replacing it,
+            # so changing one setting doesn't drop the rest.
+            if type(chart) is BaseChart:
+                for key in ("metadata", "raw_metadata"):
+                    if key in config:
+                        chart.raw_metadata = deep_merge(
+                            chart.raw_metadata, config.pop(key)
+                        )
+
             # Build a mapping of aliases to field names
             alias_to_field = {}
             for field_name, field_info in chart.model_fields.items():
@@ -47,7 +59,7 @@ async def update_chart(
                 if field_info.alias:
                     alias_to_field[field_info.alias] = field_name
 
-            for key, value in arguments["chart_config"].items():
+            for key, value in config.items():
                 # Convert alias to field name if needed
                 field_name = alias_to_field.get(key, key)
                 setattr(chart, field_name, value)

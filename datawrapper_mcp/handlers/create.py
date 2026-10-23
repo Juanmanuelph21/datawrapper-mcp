@@ -3,6 +3,7 @@
 import asyncio
 from typing import Any
 
+from datawrapper import BaseChart
 from mcp.types import ImageContent
 
 from datawrapper_mcp.config import resolve_chart_type
@@ -10,6 +11,28 @@ from datawrapper_mcp.types import CreateChartArgs
 from datawrapper_mcp.utils import json_to_dataframe
 
 from .preview import try_export_preview
+
+
+def untyped_chart_config(chart_type: str, config: dict[str, Any]) -> dict[str, Any]:
+    """Prepare the config of a type without a typed class, built as BaseChart.
+
+    BaseChart only warns about fields it doesn't know and then drops them, so a
+    typed-class field such as color_category would vanish without notice.
+    Reject those instead and point to metadata, where type settings go.
+    """
+    fields = BaseChart.model_fields
+    known = {*fields, *(field.alias for field in fields.values() if field.alias)}
+    unknown = sorted(set(config) - known)
+    if unknown:
+        raise ValueError(
+            f"Unknown field(s) for '{chart_type}': {', '.join(unknown)}. Types "
+            "without a typed schema only take the common fields shown by "
+            "get_chart_schema. Put type-specific settings in metadata, e.g. "
+            '{"metadata": {"visualize": {...}, "axes": {...}}}.'
+        )
+    # get_chart's config carries the type too; the API id passed here wins
+    config = {k: v for k, v in config.items() if k not in ("chart_type", "chart-type")}
+    return {**config, "chart-type": chart_type}
 
 
 async def create_chart(
@@ -31,7 +54,10 @@ async def create_chart(
 
     # Validate and create chart using Pydantic model
     try:
-        chart = chart_class.model_validate(arguments["chart_config"])
+        config = arguments["chart_config"]
+        if chart_class is BaseChart:
+            config = untyped_chart_config(chart_type, config)
+        chart = chart_class.model_validate(config)
     except Exception as e:
         raise ValueError(
             f"Invalid chart configuration: {e!s}\n\n"

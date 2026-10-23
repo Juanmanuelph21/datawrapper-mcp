@@ -12,7 +12,7 @@ from mcp.types import ImageContent, TextContent, ToolAnnotations
 from prefab_ui.app import PrefabApp
 from prefab_ui.components import Column, Image, Text
 
-from .config import CHART_CLASSES
+from .config import CHART_CLASSES, UNTYPED_TYPES
 from .handlers import (
     check_datawrapper_connection as check_datawrapper_connection_handler,
 )
@@ -135,6 +135,14 @@ async def list_chart_types() -> Sequence[TextContent | ImageContent]:
     result = "Available Datawrapper chart types:\n\n"
     for chart_type, description in chart_descriptions.items():
         result += f"• {chart_type}: {description}\n"
+
+    result += (
+        "\nMore Datawrapper types, without a typed schema yet. Use the API id as "
+        "chart_type and put their own settings in "
+        'chart_config["metadata"] (see get_chart_schema for each):\n\n'
+    )
+    for api_id, description in UNTYPED_TYPES.items():
+        result += f"• {api_id}: {description}\n"
 
     result += "\nTo see detailed configuration options for a specific type, use:\n"
     result += "get_chart_schema(chart_type='your_chosen_type')"
@@ -305,6 +313,25 @@ async def create_chart(
 
     See the documentation for chart-type specific examples and advanced patterns.
 
+    TYPES WITHOUT A TYPED SCHEMA (pies, donuts, tables, maps, split or grouped
+    bars, dot and range plots and others; list_chart_types shows them by API id):
+    pass the API id as chart_type. Common fields (title, intro, byline,
+    source_name, source_url, notes, theme, language, transformations) go at the
+    top level and win over metadata. The type's own settings go in "metadata":
+    "visualize" for styling and "axes" to map data columns. For example:
+       chart_type = "d3-donuts"
+       chart_config = {
+           "title": "Seats by party",
+           "metadata": {
+               "axes": {"slices": "seats"},
+               "visualize": {"donut_hole_size": 45, "show_percent": True}
+           }
+       }
+    These keys are not validated. To get them right, read a chart of the same
+    type made in the Datawrapper editor with get_chart and reuse its
+    metadata.visualize and metadata.axes. Maps need a basemap: clone an
+    existing map rather than starting from scratch.
+
     Args:
         data: Chart data. RECOMMENDED: Pass data inline as a list or dict.
             PREFERRED FORMATS (use these first):
@@ -315,6 +342,7 @@ async def create_chart(
             4. File path to CSV or JSON: "/path/to/data.csv" or "/path/to/data.json"
         chart_type: Type of chart to create. Use list_chart_types to see all available types.
             Common types: bar, line, area, arrow, column, multiple_column, scatter, stacked_bar
+            Types without a typed schema go by API id, e.g. d3-pies, d3-donuts, tables
         chart_config: Complete chart configuration as a Pydantic model dict
         access_token: Optional Datawrapper API token. When provided, charts are
                       created in the caller's account (recommended). When omitted,
@@ -488,9 +516,13 @@ async def get_chart(chart_id: str, access_token: str | None = None) -> str:
     - chart_id: The chart's unique identifier
     - title: Chart title
     - type: Simplified chart type name (bar, line, stacked_bar, etc.) - same format
-            as used in list_chart_types and create_chart
+            as used in list_chart_types and create_chart. Types without a typed
+            schema keep their API id (d3-pies, tables, ...)
     - config: Complete Pydantic model configuration including all styling,
               colors, axes, tooltips, annotations, and other properties
+    - metadata: Only for types without a typed schema. The raw Datawrapper
+                metadata, where their own settings live. Reuse its "visualize"
+                and "axes" in create_chart to clone the chart's styling
     - public_url: Public URL if published
     - edit_url: Editor URL
 
@@ -553,6 +585,10 @@ async def update_chart(
     The chart_config must use high-level Pydantic fields only (title, intro,
     byline, source_name, source_url, etc.). Do NOT use low-level serialized structures
     like 'metadata', 'visualize', or other internal API fields.
+
+    Exception: types without a typed schema (get_chart returns their "metadata")
+    take their own settings as {"metadata": {"visualize": {...}}}. What you send
+    is merged into the chart's existing metadata, so send only what changes.
 
     STYLING UPDATES:
     Use get_chart_schema to see available fields, then apply styling changes:
