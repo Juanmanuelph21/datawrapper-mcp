@@ -82,7 +82,7 @@ async def create_chart(
     }
 
     images: list[ImageContent] = []
-    preview = await try_export_preview(chart, access_token=token)
+    preview = await try_export_preview(chart, access_token=token, fit_height=True)
     if preview:
         images.append(preview)
 

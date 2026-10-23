@@ -55,7 +55,9 @@ async def test_create_forwards_token(mock_chart):
         )
 
     mock_chart.create.assert_called_once_with(access_token=USER_TOKEN, folder_id=None)
-    mock_preview.assert_called_once_with(mock_chart, access_token=USER_TOKEN)
+    mock_preview.assert_called_once_with(
+        mock_chart, access_token=USER_TOKEN, fit_height=True
+    )
 
 
 async def test_create_normalizes_empty_token(mock_chart):
@@ -78,7 +80,7 @@ async def test_create_normalizes_empty_token(mock_chart):
         )
 
     mock_chart.create.assert_called_once_with(access_token=None, folder_id=None)
-    mock_preview.assert_called_once_with(mock_chart, access_token=None)
+    mock_preview.assert_called_once_with(mock_chart, access_token=None, fit_height=True)
 
 
 # -- update_chart --
