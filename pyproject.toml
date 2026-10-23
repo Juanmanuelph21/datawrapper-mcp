@@ -75,6 +75,11 @@ datawrapper_mcp = ["py.typed"]
 
 [tool.setuptools_scm]
 
+# CAMBIO fork only: use the forked datawrapper library, which carries the new
+# chart classes before they are released upstream. Never send this upstream.
+[tool.uv.sources]
+datawrapper = { git = "https://github.com/Juanmanuelph21/Datawrapper", branch = "cambio" }
+
 [tool.vulture]
 min_confidence = 80
 # Starlette route handlers must accept `request` even when unused.
