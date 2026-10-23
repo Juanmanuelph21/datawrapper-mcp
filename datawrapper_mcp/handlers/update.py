@@ -7,6 +7,7 @@ import pandas as pd
 from datawrapper import BaseChart, get_chart
 from mcp.types import ImageContent
 
+from datawrapper_mcp.config import fits_content
 from datawrapper_mcp.types import UpdateChartArgs
 from datawrapper_mcp.utils import deep_merge, json_to_dataframe
 
@@ -86,7 +87,10 @@ async def update_chart(
     }
 
     images: list[ImageContent] = []
-    preview = await try_export_preview(chart, access_token=token)
+    # A chart sized to its content needs a new height after new data or text.
+    preview = await try_export_preview(
+        chart, access_token=token, fit_height=fits_content(chart.chart_type)
+    )
     if preview:
         images.append(preview)
 
