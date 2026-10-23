@@ -790,8 +790,8 @@ wheels = [
 
 [[package]]
 name = "datawrapper"
-version = "2.1.1.dev3+g4a865de19"
-source = { git = "https://github.com/Juanmanuelph21/Datawrapper?branch=cambio#4a865de196ae0a387cac34cef73b8c806d24fe07" }
+version = "2.1.1.dev6+g503a8f587"
+source = { git = "https://github.com/Juanmanuelph21/Datawrapper?branch=cambio#503a8f587ad7b2b62622c3f769144a53be8f2356" }
 dependencies = [
     { name = "importlib-metadata" },
     { name = "ipython", version = "8.39.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
