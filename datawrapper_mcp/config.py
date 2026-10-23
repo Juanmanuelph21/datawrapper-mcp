@@ -83,7 +83,11 @@ DATAWRAPPER_TYPES: dict[str, str] = {
     "d3-arrow-plot": "Arrow plot",
     "column-chart": "Column chart",
     "grouped-column-chart": "Grouped columns - columns for several series side by side",
-    "stacked-column-chart": "Stacked columns - part-to-whole per category, vertical",
+    "stacked-column-chart": (
+        "Stacked columns - part-to-whole per category, vertical. With one row "
+        "per column (say, per year), set transformations "
+        '{"transpose": true}, as the editor does'
+    ),
     "multiple-columns": "Small multiples of column charts",
     "d3-lines": "Line chart",
     "multiple-lines": "Multiple lines - small multiples of line charts",
@@ -91,8 +95,14 @@ DATAWRAPPER_TYPES: dict[str, str] = {
     "d3-scatter-plot": "Scatter plot",
     "d3-pies": "Pie chart - parts of a whole",
     "d3-donuts": "Donut chart - parts of a whole, with a label in the center",
-    "d3-multiple-pies": "Multiple pies - small multiples of pie charts",
-    "d3-multiple-donuts": "Multiple donuts - small multiples of donut charts",
+    "d3-multiple-pies": (
+        "Multiple pies - small multiples of pie charts. With one row per pie, "
+        'set transformations {"transpose": true}, as the editor does'
+    ),
+    "d3-multiple-donuts": (
+        "Multiple donuts - small multiples of donut charts. With one row per "
+        'donut, set transformations {"transpose": true}, as the editor does'
+    ),
     "election-donut-chart": "Election donut - seats per party in a half or full donut",
     "tables": "Table - sortable and searchable, with optional heatmaps and bars",
     "d3-maps-choropleth": (
