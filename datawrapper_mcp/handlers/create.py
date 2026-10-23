@@ -6,7 +6,7 @@ from typing import Any
 from datawrapper import BaseChart
 from mcp.types import ImageContent
 
-from datawrapper_mcp.config import resolve_chart_type
+from datawrapper_mcp.config import fits_content, resolve_chart_type
 from datawrapper_mcp.types import CreateChartArgs
 from datawrapper_mcp.utils import json_to_dataframe
 
@@ -82,9 +82,12 @@ async def create_chart(
     }
 
     # Size the chart to fit, unless its metadata already gives it a height
-    # (say, settings copied from a chart made in the editor).
+    # (say, settings copied from a chart made in the editor) and its type
+    # isn't sized to its content anyway.
     raw_metadata = config.get("metadata") or config.get("raw_metadata") or {}
-    fit_height = "embed-height" not in raw_metadata.get("publish", {})
+    fit_height = fits_content(chart_type) or "embed-height" not in raw_metadata.get(
+        "publish", {}
+    )
     images: list[ImageContent] = []
     preview = await try_export_preview(chart, access_token=token, fit_height=fit_height)
     if preview:

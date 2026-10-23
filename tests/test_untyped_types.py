@@ -111,9 +111,17 @@ async def test_create_untyped_chart_passes_metadata():
 
 
 @pytest.mark.parametrize(
-    ("publish", "fit_height"), [({}, True), ({"embed-height": 509}, False)]
+    ("chart_type", "publish", "fit_height"),
+    [
+        ("d3-donuts", {}, True),
+        ("d3-donuts", {"embed-height": 509}, False),
+        # Sized to its content, so a copied height would cut it off.
+        ("d3-bars-grouped", {"embed-height": 509}, True),
+    ],
 )
-async def test_create_fits_the_height_unless_one_is_given(publish, fit_height):
+async def test_create_fits_the_height_unless_one_is_given(
+    chart_type, publish, fit_height
+):
     def fake_create(self, access_token=None, folder_id=None):
         self.chart_id = "new12"
 
@@ -126,7 +134,7 @@ async def test_create_fits_the_height_unless_one_is_given(publish, fit_height):
         await create_chart(
             {
                 "data": [{"party": "A", "seats": 10}],
-                "chart_type": "d3-donuts",
+                "chart_type": chart_type,
                 "chart_config": {
                     "title": "Seats by party",
                     "metadata": {**DONUT_METADATA, "publish": publish},
