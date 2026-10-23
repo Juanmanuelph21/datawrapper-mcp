@@ -110,6 +110,33 @@ async def test_create_untyped_chart_passes_metadata():
     }
 
 
+@pytest.mark.parametrize(
+    ("publish", "fit_height"), [({}, True), ({"embed-height": 509}, False)]
+)
+async def test_create_fits_the_height_unless_one_is_given(publish, fit_height):
+    def fake_create(self, access_token=None, folder_id=None):
+        self.chart_id = "new12"
+
+    with (
+        patch.object(BaseChart, "create", fake_create),
+        patch(
+            "datawrapper_mcp.handlers.create.try_export_preview", return_value=None
+        ) as mock_preview,
+    ):
+        await create_chart(
+            {
+                "data": [{"party": "A", "seats": 10}],
+                "chart_type": "d3-donuts",
+                "chart_config": {
+                    "title": "Seats by party",
+                    "metadata": {**DONUT_METADATA, "publish": publish},
+                },
+            }
+        )
+
+    assert mock_preview.call_args.kwargs["fit_height"] is fit_height
+
+
 async def test_create_untyped_chart_rejects_typed_fields():
     with pytest.raises(ValueError, match=r"color_category.*metadata"):
         await create_chart(

@@ -81,8 +81,12 @@ async def create_chart(
         "edit_url": chart.get_editor_url(),
     }
 
+    # Size the chart to fit, unless its metadata already gives it a height
+    # (say, settings copied from a chart made in the editor).
+    raw_metadata = config.get("metadata") or config.get("raw_metadata") or {}
+    fit_height = "embed-height" not in raw_metadata.get("publish", {})
     images: list[ImageContent] = []
-    preview = await try_export_preview(chart, access_token=token, fit_height=True)
+    preview = await try_export_preview(chart, access_token=token, fit_height=fit_height)
     if preview:
         images.append(preview)
 
