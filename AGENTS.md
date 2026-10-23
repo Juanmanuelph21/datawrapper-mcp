@@ -86,6 +86,7 @@ datawrapper_mcp/
 | `list_folders` | List personal and team folders (optionally with their charts) |
 | `create_folder` | Create a folder |
 | `move_chart` | Move a chart into a folder |
+| `copy_chart` | Copy a chart, optionally with a new title or folder |
 
 **Important**: `publish_chart` and `export_chart_png` should ONLY be used when explicitly requested by the user.
 

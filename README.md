@@ -64,6 +64,7 @@ Here's a more complete example showing how to create, publish, update, and displ
 | `list_folders`     | List personal and team folders, optionally with their charts |
 | `create_folder`    | Create a folder, optionally inside another folder or a team |
 | `move_chart`       | Move a chart into a folder                         |
+| `copy_chart`       | Copy a chart, optionally with a new title or folder |
 
 ## Chart Types
 

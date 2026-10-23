@@ -17,9 +17,9 @@ UNTYPED_USAGE = (
     'chart_config["metadata"] as raw Datawrapper metadata: metadata.visualize '
     "for styling and metadata.axes to map data columns. The reliable way to get "
     "them right is to read a chart of this type made in the Datawrapper editor "
-    "with get_chart and reuse its metadata.visualize and metadata.axes. "
-    "Text and data settings (describe, data) belong in the top-level fields, "
-    "not in metadata."
+    "with get_chart and send back its config (without data and chart_type) and "
+    "its metadata (without data). Column formats and transposing go in the "
+    "transformations field, not in metadata.data."
 )
 
 

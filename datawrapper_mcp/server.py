@@ -16,6 +16,7 @@ from .config import CHART_CLASSES, UNTYPED_TYPES
 from .handlers import (
     check_datawrapper_connection as check_datawrapper_connection_handler,
 )
+from .handlers import copy_chart as copy_chart_handler
 from .handlers import create_chart as create_chart_handler
 from .handlers import create_folder as create_folder_handler
 from .handlers import delete_chart as delete_chart_handler
@@ -35,6 +36,7 @@ from .middleware import (
 )
 from .types import (
     CheckDatawrapperConnectionArgs,
+    CopyChartArgs,
     CreateChartArgs,
     CreateFolderArgs,
     DeleteChartArgs,
@@ -77,6 +79,7 @@ mcp = FastMCP(
                     "list_folders",
                     "create_folder",
                     "move_chart",
+                    "copy_chart",
                 }
             ),
         ),
@@ -316,9 +319,10 @@ async def create_chart(
     TYPES WITHOUT A TYPED SCHEMA (pies, donuts, tables, maps, split or grouped
     bars, dot and range plots and others; list_chart_types shows them by API id):
     pass the API id as chart_type. Common fields (title, intro, byline,
-    source_name, source_url, notes, theme, language, transformations) go at the
-    top level and win over metadata. The type's own settings go in "metadata":
-    "visualize" for styling and "axes" to map data columns. For example:
+    source_name, source_url, notes, theme, language, transformations, logo,
+    custom) go at the top level and win over metadata. The type's own settings
+    go in "metadata": "visualize" for styling and "axes" to map data columns.
+    For example:
        chart_type = "d3-donuts"
        chart_config = {
            "title": "Seats by party",
@@ -327,10 +331,13 @@ async def create_chart(
                "visualize": {"donut_hole_size": 45, "show_percent": True}
            }
        }
-    These keys are not validated. To get them right, read a chart of the same
-    type made in the Datawrapper editor with get_chart and reuse its
-    metadata.visualize and metadata.axes. Maps need a basemap: clone an
-    existing map rather than starting from scratch.
+    These keys are not validated. To make a chart like one made in the
+    Datawrapper editor, read it with get_chart and send back its config
+    (without data and chart_type) and its metadata (without "data") along with
+    your data. (To start from the chart itself, data and all, use copy_chart.) That keeps its styling, number formats (metadata.describe),
+    annotations and height (metadata.publish). Column formats and transposing
+    go in the transformations field, not in metadata.data. Maps need a
+    basemap: clone an existing map rather than starting from scratch.
 
     Args:
         data: Chart data. RECOMMENDED: Pass data inline as a list or dict.
@@ -521,8 +528,8 @@ async def get_chart(chart_id: str, access_token: str | None = None) -> str:
     - config: Complete Pydantic model configuration including all styling,
               colors, axes, tooltips, annotations, and other properties
     - metadata: Only for types without a typed schema. The raw Datawrapper
-                metadata, where their own settings live. Reuse its "visualize"
-                and "axes" in create_chart to clone the chart's styling
+                metadata, where their own settings live. To clone the chart,
+                send it back without "data" in create_chart, with config
     - public_url: Public URL if published
     - edit_url: Editor URL
 
@@ -892,6 +899,55 @@ async def move_chart(
         args["access_token"] = access_token
     result = await move_chart_handler(cast("MoveChartArgs", args))
     return result[0].text
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        read_only_hint=False,
+        destructive_hint=False,
+        idempotent_hint=False,
+        open_world_hint=True,
+    )
+)
+async def copy_chart(
+    chart_id: str,
+    title: str | None = None,
+    folder_id: int | None = None,
+    access_token: str | None = None,
+) -> list[TextContent | ImageContent]:
+    """⚠️ DATAWRAPPER MCP TOOL ⚠️
+    This is part of the Datawrapper MCP server integration.
+
+    ---
+
+    Copy a Datawrapper chart, as the editor's "Duplicate" does. The copy keeps
+    everything: data (including cells edited in the editor), styling, number
+    formats, annotations, theme and size. Use it to start a new chart from one
+    already made, then change it with update_chart. To make a chart of the same
+    kind with different data from scratch, use create_chart instead.
+
+    Args:
+        chart_id: ID of the chart to copy
+        title: Title for the copy (optional; Datawrapper adds "(Copy)" to the
+               original's title otherwise)
+        folder_id: Folder to put the copy in (optional; it stays next to the
+                   original otherwise). Use list_folders to find it.
+        access_token: Optional Datawrapper API token. When provided, uses the
+                      caller's account. When omitted, falls back to the server's
+                      DATAWRAPPER_ACCESS_TOKEN env var.
+
+    Returns:
+        The copy's chart_id, title, folder_id and editor URL as JSON, and an
+        inline PNG preview image (if export succeeds)
+    """
+    args: dict[str, Any] = {"chart_id": chart_id}
+    if title is not None:
+        args["title"] = title
+    if folder_id is not None:
+        args["folder_id"] = folder_id
+    if access_token:
+        args["access_token"] = access_token
+    return await copy_chart_handler(cast("CopyChartArgs", args))
 
 
 def main() -> None:  # pragma: no cover - trivial stdio entry point

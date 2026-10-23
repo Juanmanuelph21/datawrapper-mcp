@@ -110,6 +110,71 @@
       },
       "title": "Check Datawrapper Connection"
     },
+    "copy_chart": {
+      "annotations": {
+        "destructive_hint": false,
+        "idempotent_hint": false,
+        "open_world_hint": true,
+        "read_only_hint": false
+      },
+      "description": "\u26a0\ufe0f DATAWRAPPER MCP TOOL \u26a0\ufe0f\nThis is part of the Datawrapper MCP server integration.\n\n---\n\nCopy a Datawrapper chart, as the editor's \"Duplicate\" does. The copy keeps\neverything: data (including cells edited in the editor), styling, number\nformats, annotations, theme and size. Use it to start a new chart from one\nalready made, then change it with update_chart. To make a chart of the same\nkind with different data from scratch, use create_chart instead.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "access_token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Optional Datawrapper API token. When provided, uses the\n          caller's account. When omitted, falls back to the server's\n          DATAWRAPPER_ACCESS_TOKEN env var."
+          },
+          "chart_id": {
+            "description": "ID of the chart to copy",
+            "type": "string"
+          },
+          "folder_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Folder to put the copy in (optional; it stays next to the\n       original otherwise). Use list_folders to find it."
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Title for the copy (optional; Datawrapper adds \"(Copy)\" to the\n   original's title otherwise)"
+          }
+        },
+        "required": [
+          "chart_id"
+        ],
+        "type": "object"
+      },
+      "meta": {
+        "fastmcp": {
+          "tags": []
+        }
+      },
+      "name": "copy_chart",
+      "title": "Copy Chart"
+    },
     "create_chart": {
       "annotations": {
         "destructive_hint": false,
@@ -117,7 +182,7 @@
         "open_world_hint": true,
         "read_only_hint": false
       },
-      "description": "\u26a0\ufe0f THIS IS THE DATAWRAPPER INTEGRATION \u26a0\ufe0f\nUse this MCP tool for ALL Datawrapper chart creation.\n\nDO NOT:\n\u274c Install the 'datawrapper' Python package\n\u274c Use the Datawrapper API directly\n\u274c Import 'from datawrapper import ...'\n\u274c Run pip install datawrapper\n\nThis MCP server IS the complete Datawrapper integration. All Datawrapper operations\nshould use the MCP tools provided by this server.\n\n---\n\nCreate a Datawrapper chart with full control using Pydantic models.\nThis allows you to specify all chart properties including title, description,\nvisualization settings, axes, colors, and more. The chart_config should\nbe a complete Pydantic model dict matching the schema for the chosen chart type.\n\nBEST PRACTICES:\n- Start simple, then add customization based on user feedback\n- Only apply styling when requested or when it significantly improves readability\n- Let Datawrapper handle axis scaling automatically unless there's a specific reason to override\n\nQUICK EXAMPLES:\n\n1. Basic chart with title:\n   chart_config = {\n       \"title\": \"Monthly Sales\",\n       \"intro\": \"Sales data for Q1 2024\"\n   }\n\n2. Chart with custom colors:\n   chart_config = {\n       \"title\": \"Product Comparison\",\n       \"color_category\": {\n           \"Product A\": \"#1f77b4\",\n           \"Product B\": \"#ff7f0e\"\n       }\n   }\n\n3. Styled line chart:\n   chart_config = {\n       \"title\": \"Sales Trends\",\n       \"lines\": [\n           {\"column\": \"sales\", \"width\": \"style2\", \"interpolation\": \"curved\"}\n       ],\n       \"custom_range_y\": [0, 1000]\n   }\n\nSTYLING WORKFLOW:\n1. Use list_chart_types to see available chart types\n2. Use get_chart_schema to explore all options for your chosen type\n3. Refer to https://datawrapper.readthedocs.io/en/latest/ for detailed examples\n4. Build your chart_config with the desired styling properties\n\nCommon styling patterns:\n- Colors: {\"color_category\": {\"sales\": \"#1d81a2\", \"profit\": \"#15607a\"}}\n- Line styling: {\"lines\": [{\"column\": \"sales\", \"width\": \"style1\", \"interpolation\": \"curved\"}]}\n- Axis ranges: {\"custom_range_y\": [0, 100], \"custom_range_x\": [2020, 2024]}\n    NOTE: Datawrapper's automatic axis scaling is excellent. Only set custom ranges when\n    you need specific customization (e.g., comparing multiple charts, forcing zero baseline\n    for specific analytical reasons, or matching a house style guide).\n- Grid formatting: {\"y_grid_format\": \"0\", \"x_grid\": \"on\", \"y_grid\": \"on\"}\n- Tooltips: {\"tooltip_number_format\": \"00.00\", \"tooltip_x_format\": \"YYYY\"}\n- Annotations: {\"text_annotations\": [{\"x\": \"2023\", \"y\": 50, \"text\": \"Peak\"}]}\n\nSee the documentation for chart-type specific examples and advanced patterns.\n\nTYPES WITHOUT A TYPED SCHEMA (pies, donuts, tables, maps, split or grouped\nbars, dot and range plots and others; list_chart_types shows them by API id):\npass the API id as chart_type. Common fields (title, intro, byline,\nsource_name, source_url, notes, theme, language, transformations) go at the\ntop level and win over metadata. The type's own settings go in \"metadata\":\n\"visualize\" for styling and \"axes\" to map data columns. For example:\n   chart_type = \"d3-donuts\"\n   chart_config = {\n       \"title\": \"Seats by party\",\n       \"metadata\": {\n           \"axes\": {\"slices\": \"seats\"},\n           \"visualize\": {\"donut_hole_size\": 45, \"show_percent\": True}\n       }\n   }\nThese keys are not validated. To get them right, read a chart of the same\ntype made in the Datawrapper editor with get_chart and reuse its\nmetadata.visualize and metadata.axes. Maps need a basemap: clone an\nexisting map rather than starting from scratch.",
+      "description": "\u26a0\ufe0f THIS IS THE DATAWRAPPER INTEGRATION \u26a0\ufe0f\nUse this MCP tool for ALL Datawrapper chart creation.\n\nDO NOT:\n\u274c Install the 'datawrapper' Python package\n\u274c Use the Datawrapper API directly\n\u274c Import 'from datawrapper import ...'\n\u274c Run pip install datawrapper\n\nThis MCP server IS the complete Datawrapper integration. All Datawrapper operations\nshould use the MCP tools provided by this server.\n\n---\n\nCreate a Datawrapper chart with full control using Pydantic models.\nThis allows you to specify all chart properties including title, description,\nvisualization settings, axes, colors, and more. The chart_config should\nbe a complete Pydantic model dict matching the schema for the chosen chart type.\n\nBEST PRACTICES:\n- Start simple, then add customization based on user feedback\n- Only apply styling when requested or when it significantly improves readability\n- Let Datawrapper handle axis scaling automatically unless there's a specific reason to override\n\nQUICK EXAMPLES:\n\n1. Basic chart with title:\n   chart_config = {\n       \"title\": \"Monthly Sales\",\n       \"intro\": \"Sales data for Q1 2024\"\n   }\n\n2. Chart with custom colors:\n   chart_config = {\n       \"title\": \"Product Comparison\",\n       \"color_category\": {\n           \"Product A\": \"#1f77b4\",\n           \"Product B\": \"#ff7f0e\"\n       }\n   }\n\n3. Styled line chart:\n   chart_config = {\n       \"title\": \"Sales Trends\",\n       \"lines\": [\n           {\"column\": \"sales\", \"width\": \"style2\", \"interpolation\": \"curved\"}\n       ],\n       \"custom_range_y\": [0, 1000]\n   }\n\nSTYLING WORKFLOW:\n1. Use list_chart_types to see available chart types\n2. Use get_chart_schema to explore all options for your chosen type\n3. Refer to https://datawrapper.readthedocs.io/en/latest/ for detailed examples\n4. Build your chart_config with the desired styling properties\n\nCommon styling patterns:\n- Colors: {\"color_category\": {\"sales\": \"#1d81a2\", \"profit\": \"#15607a\"}}\n- Line styling: {\"lines\": [{\"column\": \"sales\", \"width\": \"style1\", \"interpolation\": \"curved\"}]}\n- Axis ranges: {\"custom_range_y\": [0, 100], \"custom_range_x\": [2020, 2024]}\n    NOTE: Datawrapper's automatic axis scaling is excellent. Only set custom ranges when\n    you need specific customization (e.g., comparing multiple charts, forcing zero baseline\n    for specific analytical reasons, or matching a house style guide).\n- Grid formatting: {\"y_grid_format\": \"0\", \"x_grid\": \"on\", \"y_grid\": \"on\"}\n- Tooltips: {\"tooltip_number_format\": \"00.00\", \"tooltip_x_format\": \"YYYY\"}\n- Annotations: {\"text_annotations\": [{\"x\": \"2023\", \"y\": 50, \"text\": \"Peak\"}]}\n\nSee the documentation for chart-type specific examples and advanced patterns.\n\nTYPES WITHOUT A TYPED SCHEMA (pies, donuts, tables, maps, split or grouped\nbars, dot and range plots and others; list_chart_types shows them by API id):\npass the API id as chart_type. Common fields (title, intro, byline,\nsource_name, source_url, notes, theme, language, transformations, logo,\ncustom) go at the top level and win over metadata. The type's own settings\ngo in \"metadata\": \"visualize\" for styling and \"axes\" to map data columns.\nFor example:\n   chart_type = \"d3-donuts\"\n   chart_config = {\n       \"title\": \"Seats by party\",\n       \"metadata\": {\n           \"axes\": {\"slices\": \"seats\"},\n           \"visualize\": {\"donut_hole_size\": 45, \"show_percent\": True}\n       }\n   }\nThese keys are not validated. To make a chart like one made in the\nDatawrapper editor, read it with get_chart and send back its config\n(without data and chart_type) and its metadata (without \"data\") along with\nyour data. (To start from the chart itself, data and all, use copy_chart.) That keeps its styling, number formats (metadata.describe),\nannotations and height (metadata.publish). Column formats and transposing\ngo in the transformations field, not in metadata.data. Maps need a\nbasemap: clone an existing map rather than starting from scratch.",
       "input_schema": {
         "additionalProperties": false,
         "properties": {
@@ -442,7 +507,7 @@
         "open_world_hint": true,
         "read_only_hint": true
       },
-      "description": "\u26a0\ufe0f DATAWRAPPER MCP TOOL \u26a0\ufe0f\nThis is part of the Datawrapper MCP server integration.\n\n---\n\nGet information about an existing Datawrapper chart,\nincluding its complete configuration, metadata, and URLs.\n\nThe returned configuration can be used to:\n- Understand how a chart is styled and configured\n- Adapt the configuration to a new dataset\n- Clone a chart's styling to create similar visualizations\n\nReturns:\n- chart_id: The chart's unique identifier\n- title: Chart title\n- type: Simplified chart type name (bar, line, stacked_bar, etc.) - same format\n        as used in list_chart_types and create_chart. Types without a typed\n        schema keep their API id (d3-pies, tables, ...)\n- config: Complete Pydantic model configuration including all styling,\n          colors, axes, tooltips, annotations, and other properties\n- metadata: Only for types without a typed schema. The raw Datawrapper\n            metadata, where their own settings live. Reuse its \"visualize\"\n            and \"axes\" in create_chart to clone the chart's styling\n- public_url: Public URL if published\n- edit_url: Editor URL",
+      "description": "\u26a0\ufe0f DATAWRAPPER MCP TOOL \u26a0\ufe0f\nThis is part of the Datawrapper MCP server integration.\n\n---\n\nGet information about an existing Datawrapper chart,\nincluding its complete configuration, metadata, and URLs.\n\nThe returned configuration can be used to:\n- Understand how a chart is styled and configured\n- Adapt the configuration to a new dataset\n- Clone a chart's styling to create similar visualizations\n\nReturns:\n- chart_id: The chart's unique identifier\n- title: Chart title\n- type: Simplified chart type name (bar, line, stacked_bar, etc.) - same format\n        as used in list_chart_types and create_chart. Types without a typed\n        schema keep their API id (d3-pies, tables, ...)\n- config: Complete Pydantic model configuration including all styling,\n          colors, axes, tooltips, annotations, and other properties\n- metadata: Only for types without a typed schema. The raw Datawrapper\n            metadata, where their own settings live. To clone the chart,\n            send it back without \"data\" in create_chart, with config\n- public_url: Public URL if published\n- edit_url: Editor URL",
       "input_schema": {
         "additionalProperties": false,
         "properties": {
